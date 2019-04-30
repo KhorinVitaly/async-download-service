@@ -1,0 +1,11 @@
+version: '2'
+
+
+services:
+  appserver:
+    container_name: appserver
+    restart: always
+    build: .
+    command: python server.py -l -p=test_photos
+    ports:
+      - '8080:8080'

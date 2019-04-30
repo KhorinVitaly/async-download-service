@@ -49,6 +49,35 @@ GET http://host.ru/archive/3bea29ccabbbf64bdebcc055319c5745/
 GET http://host.ru/archive/af1ad8c76fda2e48ea9aed2937e972ea/
 ```
 
+## Запуск с использованием docker-compose
+
+```bash
+docker-compose up
+```
+
+Сервер также запустится на порту 8080, проверить можно в браузере [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
+
+## Параметры и переменные окружения
+
+При запуске вы можете указать следующие параметры:
+-l включение логирования;
+-d=0.1 установка задержки ответа в секундах;
+-p=test_photos путь к директории с фотографиями.
+
+```bash
+python server.py -l -p=test_photos -d=0.001
+```
+
+При использовании docker-compose отредактируйте файл docker-compose.yml
+
+Альтернативной явдяется установка переменных окружения RESPONSE_DELAY и PHOTO_DIRECTORY_PATH
+
+```bash
+export RESPONSE_DELAY=0.1 && export PHOTO_DIRECTORY_PATH=test_photos
+```
+
+Дирикторию с фотографиями необходимо указать в любом случае!
+
 # Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org).
