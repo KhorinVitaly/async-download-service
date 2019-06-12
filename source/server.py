@@ -8,12 +8,9 @@ import os
 from collections import namedtuple
 
 
-PARAMETERS = {}
-
-
-async def archivate(request):
+async def archivate(request, parameters):
     archive_hash = request.match_info['archive_hash']
-    full_directory_path = '{0}/{1}'.format(PARAMETERS['photo_directory'], archive_hash)
+    full_directory_path = '{0}/{1}'.format(parameters['photo_directory'], archive_hash)
     if not os.path.exists(full_directory_path):
         return web.HTTPNotFound(text='Архив не существует или был удален.')
 
@@ -38,16 +35,18 @@ async def archivate(request):
                 return response
             logging.debug('Sending archive chunk ...')
             await response.write(archive_chunk)
-            await asyncio.sleep(PARAMETERS['response_delay'])
+            await asyncio.sleep(parameters['response_delay'])
     except asyncio.CancelledError:
         response.force_close()
-        subprocess.send_signal(9)
-        logging.debug('Send kill(9) signal for archivator subprocess ...')
+        logging.debug('Download was interrupted ...')
         raise
+    finally:
+        subprocess.kill()
+        logging.debug('Kill archivator subprocess ...')
 
 
 async def handle_index_page(request):
-    async with aiofiles.open('index.html', mode='r') as index_file:
+    async with aiofiles.open('source/index.html', mode='r') as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type='text/html')
 
@@ -75,32 +74,39 @@ def get_environments():
     return environments
 
 
-def set_parameters(envs, args):
+def get_parameters(envs, args):
     if args.logging:
         logging.basicConfig(level=logging.DEBUG)
 
+    parameters = {}
     if args.delay:
-        PARAMETERS['response_delay'] = args.delay
+        parameters['response_delay'] = args.delay
     elif envs.delay:
-        PARAMETERS['response_delay'] = envs.delay
+        parameters['response_delay'] = envs.delay
     else:
-        PARAMETERS['response_delay'] = 0
+        parameters['response_delay'] = 0
 
     if args.path:
-        PARAMETERS['photo_directory'] = args.path
+        parameters['photo_directory'] = args.path
     elif envs.path:
-        PARAMETERS['photo_directory'] = envs.path
+        parameters['photo_directory'] = envs.path
     else:
         raise NotADirectoryError('Photo directory is not defined!')
 
+    return parameters
 
-if __name__ == '__main__':
+
+def main():
     envs = get_environments()
     args = get_arguments()
-    set_parameters(envs, args)
+    parameters = get_parameters(envs, args)
     app = web.Application()
     app.add_routes([
         web.get('/', handle_index_page),
-        web.get('/archive/{archive_hash}/', archivate),
+        web.get('/archive/{archive_hash}/', lambda request: archivate(request, parameters)),
     ])
     web.run_app(app)
+
+
+if __name__ == '__main__':
+    main()

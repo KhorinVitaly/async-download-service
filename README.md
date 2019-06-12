@@ -76,7 +76,7 @@ python server.py -l -p=test_photos -d=0.001
 export RESPONSE_DELAY=0.1 && export PHOTO_DIRECTORY_PATH=test_photos
 ```
 
-Дирикторию с фотографиями необходимо указать в любом случае!
+Директорию с фотографиями необходимо указать в любом случае!
 
 # Цели проекта
 
