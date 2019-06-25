@@ -6,8 +6,8 @@ services:
     container_name: appserver
     restart: always
     build: .
-    command: python server.py -l -p=test_photos
+    command: python ./source/server.py -l -p=test_photos -d=0.010
     ports:
       - '8080:8080'
     volumes:
-      - ./source/:/src/
+      - ./source/:/src/source/
